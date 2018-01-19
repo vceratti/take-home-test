@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+cd "$(dirname "${BASH_SOURCE[0]}")/"
+docker-compose up -d
+
+docker-compose exec php-build ant -buildfile build/build.xml $@
+docker-compose exec php-build chown -R `stat -c "%u:%g" .` . &> /dev/null
+
+docker-compose down

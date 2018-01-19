@@ -1,0 +1,9 @@
+php-build:
+    build: "."
+    net: "host"
+    volumes:
+     - .:/var/www/html
+     - ./.composer:/root/.composer
+    container_name: take-home-test-php-build
+
+

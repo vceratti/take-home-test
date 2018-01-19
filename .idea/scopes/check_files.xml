@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="check-files" pattern="file[take-home-test]:*/&amp;&amp;!file[take-home-test]:vendor//*&amp;&amp;!file:build/build.xml&amp;&amp;!file[take-home-test]:.composer//*&amp;&amp;!file[take-home-test]:build/output//*&amp;&amp;!file:composer.lock" />
+</component>

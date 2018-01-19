@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+docker-compose up -d
+
+cmd="disable-xdebug && composer ${@} && enable-xdebug"
+
+docker-compose exec php-build bash -c "${cmd}"
+docker-compose exec php-build chown -R `stat -c "%u:%g" .` ./vendor &> /dev/null
+docker-compose exec php-build chown  `stat -c "%u:%g" .` ./composer.lock &> /dev/null
+
+docker-compose down

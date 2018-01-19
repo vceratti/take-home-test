@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+cd "$(dirname "${BASH_SOURCE[0]}")/"
+docker-compose up -d &> /dev/null
+
+cmd="disable-xdebug && cd public && php ${@} && enable-xdebug"
+
+docker-compose exec php-build bash -c "${cmd}"
+
+docker-compose down &> /dev/null

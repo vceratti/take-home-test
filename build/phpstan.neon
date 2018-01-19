@@ -1,0 +1,9 @@
+parameters:
+	bootstrap: src/bootstrap.php
+	checkAlwaysTrueCheckTypeFunctionCall: false
+	checkAlwaysTrueInstanceof: false
+	polluteCatchScopeWithTryAssignments: false
+	polluteScopeWithLoopInitialAssignments: true
+	earlyTerminatingMethodCalls: []
+	universalObjectCratesClasses: []
+	ignoreErrorsc: []

@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<ruleset name="Ruleset"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0
+                     http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
+    <description>
+        My custom rule set that checks my code...
+    </description>
+
+    <!-- Import the entire unused code rule set -->
+    <rule ref="rulesets/unusedcode.xml"/>
+    <rule ref="rulesets/codesize.xml">
+        <exclude name="CyclomaticComplexity" />
+        <exclude name="ExcessiveMethodLength" />
+        <exclude name="ExcessiveClassLength" />
+        <exclude name="ExcessiveParameterList" />
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/CyclomaticComplexity">
+        <priority>1</priority>
+        <properties>
+            <property name="reportLevel" value="5" />
+        </properties>
+    </rule>
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
+        <priority>1</priority>
+        <properties>
+            <property name="minimum" value="19" />
+        </properties>
+    </rule>
+    <rule ref="rulesets/codesize.xml/ExcessiveClassLength">
+        <priority>1</priority>
+        <properties>
+            <property name="minimum" value="500" />
+        </properties>
+    </rule>
+    <rule ref="rulesets/codesize.xml/ExcessiveParameterList">
+        <priority>1</priority>
+        <properties>
+            <property name="minimum" value="5" />
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/cleancode.xml"/>
+    <rule ref="rulesets/controversial.xml"/>
+    <rule ref="rulesets/design.xml">
+        <exclude name="NumberOfChildren" />
+        <exclude name="DepthOfInheritance" />
+        <exclude name="CouplingBetweenObjects" />
+    </rule>
+
+    <rule ref="rulesets/design.xml/NumberOfChildren">
+        <priority>1</priority>
+        <properties>
+            <property name="minimum" value="10" />
+        </properties>
+    </rule>
+    <rule ref="rulesets/design.xml/DepthOfInheritance">
+        <priority>1</priority>
+        <properties>
+            <property name="minimum" value="5" />
+        </properties>
+    </rule>
+    <rule ref="rulesets/design.xml/CouplingBetweenObjects">
+        <priority>1</priority>
+        <properties>
+            <property name="minimum" value="10" />
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/naming.xml">
+        <exclude name="ShortVariable"/>
+    </rule>
+    <rule ref="rulesets/naming.xml/ShortVariable">
+        <priority>1</priority>
+        <properties>
+            <property name="minimum" value="4"/>
+            <property name="exceptions" value="id,end"/>
+        </properties>
+    </rule>
+
+    <rule ref="../../../../../../rulesets/cleancode.xml">
+        <exclude name="DataStructureMethods"/>
+        <exclude name="PrivateFieldDeclaration"/>
+    </rule>
+    <rule ref="../../../../../../rulesets/cleancode.xml/DataStructureMethods">
+        <priority>1</priority>
+        <properties>
+            <property name="prefixes" value="get,set,is,has,add,remove"/>
+            <property name="whitelist" value="__construct,__destruct,__set,__get,__call,__callStatic,
+                __isset,__unset,__sleep,__wakeup,__toString,__invoke,__set_state,__clone
+                ,toArray,toJson,add,update,filter,remove,toResultJSON" description="allowed method names"/>
+
+            <property name="dataStructureNamespaceRegex" value="(^.*$)i"/>
+            <property name="dataStructureClassNameRegex" value="(^.*(Entity|Aggregate).*$)i" />
+        </properties>
+    </rule>
+    <rule ref="../../../../../../rulesets/cleancode.xml/PrivateFieldDeclaration">
+        <priority>1</priority>
+        <properties>
+            <property name="percent" value="20"/>
+            <property name="dataStructureNamespaceRegex" value="(^\w*$)i"/>
+            <property name="dataStructureClassNameRegex" value="(^\w*$)i" />
+        </properties>
+    </rule>
+    <rule ref="../../../../../../rulesets/naming.xml" />
+    <rule ref="../../../../../../rulesets/test.xml" />
+</ruleset>

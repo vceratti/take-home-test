@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/6.3/phpunit.xsd"
+         bootstrap="../src/bootstrap.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>../tests</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../*</directory>
+            <exclude>
+                <directory suffix=".php">../vendor</directory>
+                <directory suffix=".php">../tests</directory>
+                <directory suffix=".php">../build</directory>
+                <directory suffix=".php">../.mariadb</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+    <php>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="QUEUE_DRIVER" value="sync"/>
+        <env name="JWT_ENCRYPT_ALGORITHM" value="HS256"/>
+        <env name="JWT_KEY" value="key64nrQViqoXNIN4crFHuMWRGvUWRrY5PkTXR0a="/>
+    </php>
+    <logging>
+        <log type="coverage-html" target="output/phpunit/coverage"
+             highLowerBound="99"/>
+        <log type="coverage-clover" target="output/phpunit/clover.xml"/>
+        <log type="coverage-crap4j" target="output/phpunit/crap4j.xml"/>
+        <log type="junit" target="output/phpunit/junit.xml"/>
+    </logging>
+</phpunit>
+

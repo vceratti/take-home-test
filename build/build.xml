@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="PHP Build" default="quick" xmlns="" basedir="../"
+         xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+
+    <!-- MAIN TARGETS -->
+    <target name="quick"
+            depends="composer-install,phpcs,phpmd,phpcpd,phpstan,phpunit-no-coverage,check-failure"
+            description="Performs static analysis (executing the tools in parallel), runs the tests, and generates project documentation">
+
+    </target>
+
+    <target name="full"
+            depends="composer-install,phpcs,phpmd,phpcpd,phpstan,phploc,phpunit,phpmetrics,phpdoc,check-failure"
+            description="Performs static analysis (executing the tools in parallel), runs the tests, and generates project documentation">
+    </target>
+
+    <target name="test"
+            description="Running PHP Unit Tests">
+        <antcall target="phpunit-no-coverage"/>
+    </target>
+    <!-- ***************************************************************************************** -->
+
+    <!-- GLOBAL VARS -->
+
+    <property name="basedir.relative" value='.'/>
+    <property name="exclude.csv" value='vendor,build,project-sample,public'/>
+    <property name="exclude.params" value='--exclude vendor --exclude build --exclude project-sample --exclude public'/>
+    <property name="exclude.patterns" value='*/vendor/*,*/build/*,*/project-sample/*,*/public/*'/>
+    <property name="exclude.phpdoc" value=' --ignore vendor/,build/,project-sample/,public/'/>
+    <var name="error.msg" value="...${line.separator}"/>
+
+    <!-- ***************************************************************************************** -->
+
+    <!-- GLOBAL VARS -->
+    <macrodef name="call-prepare">
+        <sequential>
+            <if>
+                <not>
+                    <isset property="prepared"/>
+                </not>
+                <then>
+                    <antcall target="prepare"/>
+                </then>
+            </if>
+            <property name="prepared" value='true'/>
+        </sequential>
+    </macrodef>
+    <macrodef name="call-exec">
+        <attribute name="executable"/>
+        <attribute name="args"/>
+
+        <sequential>
+            <call-prepare/>
+
+            <exec executable="@{executable}" taskname="@{executable}" resultproperty="result.@{executable}"
+                  outputproperty="log.@{executable}">
+                <arg line="@{args}"/>
+            </exec>
+
+            <echo message="${log.@{executable}}"/>
+            <echo file="./build/output/log/@{executable}.log" message="${log.@{executable}}"/>
+            <property name="log" value="rs"/>
+        </sequential>
+    </macrodef>
+
+    <!-- ***************************************************************************************** -->
+
+    <target name="prepare"
+            description="Prepare for build">
+        <path id="path">
+            <pathelement location="${basedir}/"/>
+        </path>
+
+        <exec executable="rm" taskname="Clearing output dirs">
+            <arg line="rm -rf ./build/output/**"/>
+        </exec>
+
+        <exec executable="bash" taskname="Creating log dir">
+            <arg line="-c 'mkdir -p ./build/output/log'"/>
+        </exec>
+        <property name="prepare.done" value="true"/>
+    </target>
+
+    <target name="composer-install">
+        <call-prepare/>
+        <call-exec executable="disable-xdebug" args=""/>
+        <call-exec executable="composer" args="install -d=."/>
+        <call-exec executable="enable-xdebug" args=""/>
+    </target>
+
+    <!--  Reports duplicate code -->
+    <target name="phpcpd"
+            description="Find duplicate code using PHPCPD and log result in XML format. Intended for usage on the command line before committing and for CI.">
+        <call-prepare/>
+        <call-exec executable="phpcpd"
+                   args="--log-pmd ./build/output/phpcpd.xml --min-lines=3 --min-tokens=8 ${exclude.params} ."/>
+    </target>
+    <!--  Checks code style - PSR-2 -->
+    <target name="phpcs"
+            description="Find coding standard violations using PHP_CodeSniffer and log result in XML format.  Intended for usage on the command line.">
+        <call-prepare/>
+        <call-exec executable="phpcs" args="--standard=PSR2 --extensions=php --ignore=${exclude.csv} ."/>
+    </target>
+    <!--  Checks code style - PSR-2 -->
+    <target name="phpcs-ci"
+            description="Find coding standard violations using PHP_CodeSniffer and log result in XML format.  Intended for usage on the command line.">
+        <call-prepare/>
+        <call-exec executable="phpcs"
+                   args="--standard=PSR2 --report=checkstyle --report-file=./build/output/phpcs.xml --extensions=php --ignore=${exclude.csv} ."/>
+    </target>
+
+    <!--  Generate DOCs from code -->
+    <target name="phpdoc"
+            description="Run phpdoc to generate code documentation">
+        <call-prepare/>
+        <property name="phpdoc.template" value='--template="responsive"'/>
+        <call-exec executable="phpdoc"
+                   args="-d . -t ./build/output/phpdoc ${exclude.phpdoc} ${phpdoc.template}"/>
+    </target>
+    <!--  Generate project size metrics from code -->
+    <target name="phploc"
+            description="Measure project size using PHPLOC and log result in CSV and XML format.">
+        <call-prepare/>
+        <call-exec executable="phploc"
+                   args="${exclude.params} --count-tests --log-csv ./build/output/phploc.csv --log-xml ${basedir.relative}/build/output/phploc.xml ."/>
+    </target>
+    <!-- Generate metrics for the project in html -->
+    <target name="phpmetrics"
+            description="Calculate metrics and generate many reports in HTML.">
+        <call-prepare/>
+        <call-exec executable="phpmetrics"
+                   args="--exclude=${exclude.csv} --report-html=./build/output/phpmetrics . --junit=./build/output/phpunit/junit.xml"/>
+    </target>
+
+    <!-- Execute PHP Mess Detector for code quality -->
+    <target name="phpmd"
+            description="Runs phpmd and show code rules violations.">
+        <call-prepare/>
+        <call-exec executable="phpmd" args=". text ./build/phpmd-ruleset.xml --exclude ${exclude.csv}"/>
+    </target>
+    <!-- Execute PHP Mess Detector for code quality (XML Report) -->
+    <target name="phpmd-ci"
+            description="Runs phpmd and logs XML with code rules violations.">
+        <call-prepare/>
+        <call-exec executable="phpmd"
+                   args=". xml --reportfile ./build/output/phpmd.xml ./build/phpmd-ruleset.xml --exclude ${exclude.csv}"/>
+    </target>
+    <!-- Execute PHP Stan for static analysis -->
+    <target name="phpstan"
+            description="Runs phpstan and show violations.">
+        <call-prepare/>
+        <call-exec executable="phpstan" args="analyse src tests -c build/phpstan.neon -l 7"/>
+    </target>
+    <!-- Execute PHP Unit for running task and generating coverage -->
+    <target name="phpunit"
+            description="Run unit tests with PHPUnit">
+        <call-prepare/>
+        <call-exec executable="phpunit"
+                   args="-c build/phpunit.xml"/>
+    </target>
+
+    <!-- Execute PHP Unit for code quality (XML Report) -->
+    <target name="phpunit-no-coverage"
+            description="Run unit tests with PHPUnit">
+        <call-prepare/>
+        <call-exec executable="phpunit"
+                   args="-c build/phpunit.xml  --no-coverage"/>
+    </target>
+
+
+    <macrodef name="check-result">
+        <attribute name="tool"/>
+        <attribute name="msg"/>
+
+        <sequential>
+            <if>
+                <matches pattern="[1-9]+" string="${result.@{tool}}"/>
+                <then>
+                    <var name="error.msg"
+                         value='${error.msg} ${line.separator}   @{msg}'/>
+                </then>
+            </if>
+        </sequential>
+    </macrodef>
+
+    <target name="check-failure">
+
+        <check-result tool="composer" msg="[Composer] Error running composer"/>
+        <check-result tool="php" msg="[Artisan Migrations] Error executing the migrations"/>
+        <check-result tool="phpcs" msg="[PHPCS] Code style PSR-2 rules violated"/>
+        <check-result tool="phpmd" msg="[PHMPD] Code rules violated"/>
+        <check-result tool="phpcpd" msg="[PHPCPD] Duplicated code found"/>
+        <check-result tool="phpstan" msg="[PHPSTAN] PHPStan detected errors or bad practices"/>
+        <check-result tool="phploc" msg="[PHPLOC] PHPLOC could not generate its metrics."/>
+        <check-result tool="pdepend" msg="[PDEPEND] Could not generate pdepend reports."/>
+        <check-result tool="phpunit" msg="[PHPUNIT] Test failure"/>
+        <check-result tool="phpdoc" msg="[PHPDOC] Unable to generate project documentation"/>
+        <check-result tool="phpmetrics" msg="[PHPMETRICS] Could not generate project metrics"/>
+
+        <!--suppress PhingDomInspection -->
+        <fail message="${error.msg}">
+            <condition>
+                <matches pattern="...\w+" string="${error.msg}"/>
+            </condition>
+        </fail>
+    </target>
+
+</project>
